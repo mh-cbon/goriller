@@ -1,0 +1,12 @@
+hash: f191e50f488dd5b20f51269bd6964cbece6c8af39ea34c73d7508d6daac68ad8
+updated: 2017-05-08T23:52:10.927522553+02:00
+imports:
+- name: github.com/mh-cbon/astutil
+  version: 2dcdfdcf69debfa35be3e660586cadaff02d90b4
+- name: golang.org/x/tools
+  version: 11b386927a86209ac5f9c7c54bf31bb0698be332
+  subpackages:
+  - go/ast/astutil
+  - go/buildutil
+  - go/loader
+testImports: []
