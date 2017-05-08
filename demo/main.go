@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	httper "github.com/mh-cbon/httper/lib"
 )
 
@@ -21,8 +22,9 @@ func main() {
 	jsoner := NewJSONController(NewController(backend))
 	httper := NewHTTPController(jsoner)
 
-	// public views
-	http.HandleFunc("/", httper.GetByID)
+	router := mux.NewRouter()
+	NewGorillerTomate(httper).Bind(router)
+	http.Handle("/", router)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
