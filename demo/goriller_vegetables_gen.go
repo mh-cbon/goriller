@@ -17,14 +17,12 @@ var xxStringsSplit = strings.Split
 // Controller of some resources.
 type GorillerTomate struct {
 	embed *HTTPController
-	r     *mux.Router
 }
 
 // NewGorillerTomate constructs a goriller of *HTTPController
-func NewGorillerTomate(embed *HTTPController, r *mux.Router) *GorillerTomate {
+func NewGorillerTomate(embed *HTTPController) *GorillerTomate {
 	ret := &GorillerTomate{
 		embed: embed,
-		r:     r,
 	}
 	return ret
 }

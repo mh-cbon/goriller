@@ -151,16 +151,14 @@ func processType(destName, srcName string, prog *loader.Program, pkg *loader.Pac
 %v
 type %v struct{
 	embed %v
-  r *mux.Router
 }
 		`, destName, srcName, structComment, destName, srcName)
 
 	// Make the constructor
 	fmt.Fprintf(dest, `// New%v constructs a goriller of %v
-func New%v(embed %v, r *mux.Router) *%v {
+func New%v(embed %v) *%v {
 	ret := &%v{
 		embed: embed,
-    r: r,
 	}
   return ret
 }
