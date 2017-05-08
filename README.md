@@ -200,7 +200,7 @@ func NewGorillerTomate(embed *HTTPController) *GorillerTomate {
 	return ret
 }
 
-// Make the given router.
+// Bind the given router.
 func (t GorillerTomate) Bind(router *mux.Router) {
 
 	router.HandleFunc("/{id}", t.embed.GetByID).Methods("GET")

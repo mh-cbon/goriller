@@ -164,7 +164,7 @@ func New%v(embed %v) *%v {
 }
 `, destName, srcName, destName, srcName, destName, destName)
 
-	fmt.Fprintf(dest, `// Make the given router.
+	fmt.Fprintf(dest, `// Bind the given router.
 func (t %v) Bind(router *mux.Router) {
 `, destName)
 
