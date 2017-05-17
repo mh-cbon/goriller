@@ -4,28 +4,32 @@ package main
 // github.com/mh-cbon/lister
 // do not edit
 
-// Tomates implements a typed slice of *Tomate
-type Tomates struct{ items []*Tomate }
+import (
+	"encoding/json"
+)
 
-// NewTomates creates a new typed slice of *Tomate
-func NewTomates() *Tomates {
-	return &Tomates{items: []*Tomate{}}
+// TomatesGen implements a typed slice of *Tomate
+type TomatesGen struct{ items []*Tomate }
+
+// NewTomatesGen creates a new typed slice of *Tomate
+func NewTomatesGen() *TomatesGen {
+	return &TomatesGen{items: []*Tomate{}}
 }
 
 // Push appends every *Tomate
-func (t *Tomates) Push(x ...*Tomate) *Tomates {
+func (t *TomatesGen) Push(x ...*Tomate) *TomatesGen {
 	t.items = append(t.items, x...)
 	return t
 }
 
 // Unshift prepends every *Tomate
-func (t *Tomates) Unshift(x ...*Tomate) *Tomates {
+func (t *TomatesGen) Unshift(x ...*Tomate) *TomatesGen {
 	t.items = append(x, t.items...)
 	return t
 }
 
 // Pop removes then returns the last *Tomate.
-func (t *Tomates) Pop() *Tomate {
+func (t *TomatesGen) Pop() *Tomate {
 	var ret *Tomate
 	if len(t.items) > 0 {
 		ret = t.items[len(t.items)-1]
@@ -35,7 +39,7 @@ func (t *Tomates) Pop() *Tomate {
 }
 
 // Shift removes then returns the first *Tomate.
-func (t *Tomates) Shift() *Tomate {
+func (t *TomatesGen) Shift() *Tomate {
 	var ret *Tomate
 	if len(t.items) > 0 {
 		ret = t.items[0]
@@ -45,7 +49,7 @@ func (t *Tomates) Shift() *Tomate {
 }
 
 // Index of given *Tomate. It must implements Ider interface.
-func (t *Tomates) Index(s *Tomate) int {
+func (t *TomatesGen) Index(s *Tomate) int {
 	ret := -1
 	for i, item := range t.items {
 		if s.GetID() == item.GetID() {
@@ -57,12 +61,12 @@ func (t *Tomates) Index(s *Tomate) int {
 }
 
 // Contains returns true if s in is t.
-func (t *Tomates) Contains(s *Tomate) bool {
+func (t *TomatesGen) Contains(s *Tomate) bool {
 	return t.Index(s) > -1
 }
 
 // RemoveAt removes a *Tomate at index i.
-func (t *Tomates) RemoveAt(i int) bool {
+func (t *TomatesGen) RemoveAt(i int) bool {
 	if i >= 0 && i < len(t.items) {
 		t.items = append(t.items[:i], t.items[i+1:]...)
 		return true
@@ -71,7 +75,7 @@ func (t *Tomates) RemoveAt(i int) bool {
 }
 
 // Remove removes given *Tomate
-func (t *Tomates) Remove(s *Tomate) bool {
+func (t *TomatesGen) Remove(s *Tomate) bool {
 	if i := t.Index(s); i > -1 {
 		t.RemoveAt(i)
 		return true
@@ -80,7 +84,7 @@ func (t *Tomates) Remove(s *Tomate) bool {
 }
 
 // InsertAt adds given *Tomate at index i
-func (t *Tomates) InsertAt(i int, s *Tomate) *Tomates {
+func (t *TomatesGen) InsertAt(i int, s *Tomate) *TomatesGen {
 	if i < 0 || i >= len(t.items) {
 		return t
 	}
@@ -94,7 +98,7 @@ func (t *Tomates) InsertAt(i int, s *Tomate) *Tomates {
 
 // Splice removes and returns a slice of *Tomate, starting at start, ending at start+length.
 // If any s is provided, they are inserted in place of the removed slice.
-func (t *Tomates) Splice(start int, length int, s ...*Tomate) []*Tomate {
+func (t *TomatesGen) Splice(start int, length int, s ...*Tomate) []*Tomate {
 	var ret []*Tomate
 	for i := 0; i < len(t.items); i++ {
 		if i >= start && i < start+length {
@@ -113,7 +117,7 @@ func (t *Tomates) Splice(start int, length int, s ...*Tomate) []*Tomate {
 }
 
 // Slice returns a copied slice of *Tomate, starting at start, ending at start+length.
-func (t *Tomates) Slice(start int, length int) []*Tomate {
+func (t *TomatesGen) Slice(start int, length int) []*Tomate {
 	var ret []*Tomate
 	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
 		ret = t.items[start : start+length]
@@ -122,7 +126,7 @@ func (t *Tomates) Slice(start int, length int) []*Tomate {
 }
 
 // Reverse the slice.
-func (t *Tomates) Reverse() *Tomates {
+func (t *TomatesGen) Reverse() *TomatesGen {
 	for i, j := 0, len(t.items)-1; i < j; i, j = i+1, j-1 {
 		t.items[i], t.items[j] = t.items[j], t.items[i]
 	}
@@ -130,29 +134,29 @@ func (t *Tomates) Reverse() *Tomates {
 }
 
 // Len of the slice.
-func (t *Tomates) Len() int {
+func (t *TomatesGen) Len() int {
 	return len(t.items)
 }
 
 // Set the slice.
-func (t *Tomates) Set(x []*Tomate) *Tomates {
+func (t *TomatesGen) Set(x []*Tomate) *TomatesGen {
 	t.items = append(t.items[:0], x...)
 	return t
 }
 
 // Get the slice.
-func (t *Tomates) Get() []*Tomate {
+func (t *TomatesGen) Get() []*Tomate {
 	return t.items
 }
 
 // At return the item at index i.
-func (t *Tomates) At(i int) *Tomate {
+func (t *TomatesGen) At(i int) *Tomate {
 	return t.items[i]
 }
 
-// Filter return a new Tomates with all items satisfying f.
-func (t *Tomates) Filter(filters ...func(*Tomate) bool) *Tomates {
-	ret := NewTomates()
+// Filter return a new TomatesGen with all items satisfying f.
+func (t *TomatesGen) Filter(filters ...func(*Tomate) bool) *TomatesGen {
+	ret := NewTomatesGen()
 	for _, i := range t.items {
 		ok := true
 		for _, f := range filters {
@@ -168,9 +172,9 @@ func (t *Tomates) Filter(filters ...func(*Tomate) bool) *Tomates {
 	return ret
 }
 
-// Map return a new Tomates of each items modified by f.
-func (t *Tomates) Map(mappers ...func(*Tomate) *Tomate) *Tomates {
-	ret := NewTomates()
+// Map return a new TomatesGen of each items modified by f.
+func (t *TomatesGen) Map(mappers ...func(*Tomate) *Tomate) *TomatesGen {
+	ret := NewTomatesGen()
 	for _, i := range t.items {
 		val := i
 		for _, m := range mappers {
@@ -187,7 +191,7 @@ func (t *Tomates) Map(mappers ...func(*Tomate) *Tomate) *Tomates {
 }
 
 // First returns the first value or default.
-func (t *Tomates) First() *Tomate {
+func (t *TomatesGen) First() *Tomate {
 	var ret *Tomate
 	if len(t.items) > 0 {
 		ret = t.items[0]
@@ -196,7 +200,7 @@ func (t *Tomates) First() *Tomate {
 }
 
 // Last returns the last value or default.
-func (t *Tomates) Last() *Tomate {
+func (t *TomatesGen) Last() *Tomate {
 	var ret *Tomate
 	if len(t.items) > 0 {
 		ret = t.items[len(t.items)-1]
@@ -205,12 +209,27 @@ func (t *Tomates) Last() *Tomate {
 }
 
 // Empty returns true if the slice is empty.
-func (t *Tomates) Empty() bool {
+func (t *TomatesGen) Empty() bool {
 	return len(t.items) == 0
 }
 
-// FilterTomates provides filters for a struct.
-var FilterTomates = struct {
+//UnmarshalJSON JSON unserializes TomatesGen
+func (t *TomatesGen) UnmarshalJSON(b []byte) error {
+	var items []*Tomate
+	if err := json.Unmarshal(b, &items); err != nil {
+		return err
+	}
+	t.items = items
+	return nil
+}
+
+//MarshalJSON JSON serializes TomatesGen
+func (t *TomatesGen) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.items)
+}
+
+// FilterTomatesGen provides filters for a struct.
+var FilterTomatesGen = struct {
 	ByID   func(int) func(*Tomate) bool
 	ByName func(string) func(*Tomate) bool
 }{
