@@ -13,7 +13,8 @@ Package goriller generate gorilla routers.
 - [API example](#api-example)
   - [Anootations](#anootations)
   - [> demo/main.go](#-demomaingo)
-  - [> demo/goriller_vegetables_gen.go](#-demogoriller_vegetables_gengo)
+  - [> demo/controllergoriller.go](#-democontrollergorillergo)
+  - [> demo/controllergorillerrpc.go](#-democontrollergorillerrpcgo)
 - [Recipes](#recipes)
   - [Release the project](#release-the-project)
 - [History](#history)
@@ -34,18 +35,24 @@ go install
 goriller 0.0.0
 
 Usage
+	goriller [-p name] [-mode name] [...types]
 
-	goriller [out] [...types]
-
-	out:   Output destination of the results, use '-' for stdout.
-	types: A list of types such as src:dst.
+  types:  A list of types such as src:dst.
+          A type is defined by its package path and its type name,
+          [pkgpath/]name
+          If the Package path is empty, it is set to the package name being generated.
+          Name can be a valid type identifier such as TypeName, *TypeName, []TypeName 
+  -p:     The name of the package output.
+  -mode:  The generation mode std|rpc.
 ```
 
 ## Cli examples
 
 ```sh
-# Create a goriller binder of Tomate to MyTomate
-goriller tomate_gen.go Tomate:MyTomate
+# Create a goriller binder version of JSONTomates to HTTPTomates
+goriller *JSONTomates:HTTPTomates
+# Create a goriller binder version of JSONTomates to HTTPTomates to stdout
+goriller -p main - JSONTomates:HTTPTomates
 ```
 
 # API example
@@ -71,32 +78,48 @@ The `struct` annotations are used as default for the `methods` annotations.
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	httper "github.com/mh-cbon/httper/lib"
 )
 
-//go:generate lister vegetables_gen.go *Tomate:Tomates
+//go:generate lister *Tomate:TomatesGen
+//go:generate channeler TomatesGen:TomatesSyncGen
 
-//go:generate jsoner -mode gorilla json_controller_gen.go *Controller:JSONController
-//go:generate httper -mode gorilla http_vegetables_gen.go *JSONController:HTTPController
-//go:generate goriller goriller_vegetables_gen.go *HTTPController:GorillerTomate
+//go:generate jsoner -mode gorilla *Controller:ControllerJSONGen
+//go:generate httper -mode gorilla *ControllerJSONGen:ControllerHTTPGen
+//go:generate goriller *ControllerHTTPGen:ControllerGoriller
+//go:generate goriller -mode rpc *ControllerHTTPGen:ControllerGorillerRPC
 
 func main() {
 
-	backend := NewTomates()
-	backend.Push(&Tomate{Name: "red"})
+	backend := NewTomatesSyncGen()
+	backend.Push(&Tomate{Name: "Red"})
 
-	jsoner := NewJSONController(NewController(backend))
-	httper := NewHTTPController(jsoner)
+	jsoner := NewControllerJSONGen(NewController(backend), nil)
+	httper := NewControllerHTTPGen(jsoner, nil)
 
 	router := mux.NewRouter()
-	NewGorillerTomate(httper).Bind(router)
+	NewControllerGoriller(httper).Bind(router)
 	http.Handle("/", router)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	go func() {
+		log.Fatal(http.ListenAndServe(":8080", nil))
+	}()
+
+	time.Sleep(1 * time.Millisecond)
+
+	req, err := http.Get("http://localhost:8080/0")
+	if err != nil {
+		panic(err)
+	}
+	defer req.Body.Close()
+	io.Copy(os.Stdout, req.Body)
 }
 
 // Tomate is about red vegetables to make famous italian food.
@@ -112,11 +135,11 @@ func (t *Tomate) GetID() int {
 
 // Controller of some resources.
 type Controller struct {
-	backend *Tomates
+	backend *TomatesSyncGen
 }
 
 // NewController ...
-func NewController(backend *Tomates) *Controller {
+func NewController(backend *TomatesSyncGen) *Controller {
 	return &Controller{
 		backend: backend,
 	}
@@ -126,7 +149,7 @@ func NewController(backend *Tomates) *Controller {
 // @route /{id}
 // @methods GET
 func (t *Controller) GetByID(urlID int) *Tomate {
-	return t.backend.Filter(FilterTomates.ByID(urlID)).First()
+	return t.backend.Filter(FilterTomatesGen.ByID(urlID)).First()
 }
 
 // UpdateByID ...
@@ -171,7 +194,7 @@ func (t *Controller) TestRPCer(id int) bool {
 
 Following code is the generated implementation of the goriller binder.
 
-#### > demo/goriller_vegetables_gen.go
+#### > demo/controllergoriller.go
 ```go
 package main
 
@@ -181,33 +204,72 @@ package main
 
 import (
 	"github.com/gorilla/mux"
-	"strings"
 )
 
-var xxStringsSplit = strings.Split
-
-// GorillerTomate is a goriller of *HTTPController.
-// HTTPController is an httper of *JSONController.
-// JSONController is jsoner of *Controller.
+// ControllerGoriller is a goriller of *ControllerHTTPGen.
+// ControllerHTTPGen is an httper of *ControllerJSONGen.
+// ControllerJSONGen is jsoner of *Controller.
 // Controller of some resources.
-type GorillerTomate struct {
-	embed *HTTPController
+type ControllerGoriller struct {
+	embed *ControllerHTTPGen
 }
 
-// NewGorillerTomate constructs a goriller of *HTTPController
-func NewGorillerTomate(embed *HTTPController) *GorillerTomate {
-	ret := &GorillerTomate{
+// NewControllerGoriller constructs a goriller of *ControllerHTTPGen
+func NewControllerGoriller(embed *ControllerHTTPGen) *ControllerGoriller {
+	ret := &ControllerGoriller{
 		embed: embed,
 	}
 	return ret
 }
 
 // Bind the given router.
-func (t GorillerTomate) Bind(router *mux.Router) {
-
+func (t ControllerGoriller) Bind(router *mux.Router) {
 	router.HandleFunc("/{id}", t.embed.GetByID).Methods("GET")
 	router.HandleFunc("/{id}", t.embed.UpdateByID).Methods("PUT", "POST")
 	router.HandleFunc("/{id}", t.embed.DeleteByID).Methods("DELETE")
+
+}
+```
+
+Following code is the generated implementation of the goriller binder in an rpc fashion.
+
+#### > demo/controllergorillerrpc.go
+```go
+package main
+
+// file generated by
+// github.com/mh-cbon/goriller
+// do not edit
+
+import (
+	"github.com/gorilla/mux"
+)
+
+// ControllerGorillerRPC is a goriller of *ControllerHTTPGen.
+// ControllerHTTPGen is an httper of *ControllerJSONGen.
+// ControllerJSONGen is jsoner of *Controller.
+// Controller of some resources.
+type ControllerGorillerRPC struct {
+	embed *ControllerHTTPGen
+}
+
+// NewControllerGorillerRPC constructs a goriller of *ControllerHTTPGen
+func NewControllerGorillerRPC(embed *ControllerHTTPGen) *ControllerGorillerRPC {
+	ret := &ControllerGorillerRPC{
+		embed: embed,
+	}
+	return ret
+}
+
+// Bind the given router.
+func (t ControllerGorillerRPC) Bind(router *mux.Router) {
+	router.HandleFunc("GetByID", t.embed.GetByID)
+	router.HandleFunc("UpdateByID", t.embed.UpdateByID)
+	router.HandleFunc("DeleteByID", t.embed.DeleteByID)
+	router.HandleFunc("TestVars1", t.embed.TestVars1)
+	router.HandleFunc("TestCookier", t.embed.TestCookier)
+	router.HandleFunc("TestSessionner", t.embed.TestSessionner)
+	router.HandleFunc("TestRPCer", t.embed.TestRPCer)
 
 }
 ```

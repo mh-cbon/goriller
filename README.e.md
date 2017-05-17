@@ -21,8 +21,10 @@ LicenseColor: yellow
 ## Cli examples
 
 ```sh
-# Create a goriller binder of Tomate to MyTomate
-goriller tomate_gen.go Tomate:MyTomate
+# Create a goriller binder version of JSONTomates to HTTPTomates
+goriller *JSONTomates:HTTPTomates
+# Create a goriller binder version of JSONTomates to HTTPTomates to stdout
+goriller -p main - JSONTomates:HTTPTomates
 ```
 
 # API example
@@ -47,7 +49,11 @@ The `struct` annotations are used as default for the `methods` annotations.
 
 Following code is the generated implementation of the goriller binder.
 
-#### > {{cat "demo/goriller_vegetables_gen.go" | color "go"}}
+#### > {{cat "demo/controllergoriller.go" | color "go"}}
+
+Following code is the generated implementation of the goriller binder in an rpc fashion.
+
+#### > {{cat "demo/controllergorillerrpc.go" | color "go"}}
 
 
 # Recipes
